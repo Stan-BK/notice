@@ -6,19 +6,21 @@ export default {
 	async fetch(req, env) {
 		const url = new URL(req.url);
 
-		if (url.pathname == '/subscribe') return await trySubscribe(env['Notice-book'], JSON.parse(await req.json()));
+		if (req.method == 'POST') {
+			if (url.pathname == '/subscribe') return await trySubscribe(env['Notice-book'], JSON.parse(await req.json()));
 
-		if (url.pathname == '/update') {
-			try {
-				const type = url.searchParams.get('type') as NoticeType;
-				const op = url.searchParams.get('op') as NoticeOperation;
-				if (op == NoticeOperation.Add) return await updateNoticeList(env['Notice-book'], type, op, JSON.parse(await req.json()));
-				else op == NoticeOperation.Remove;
-				return await updateNoticeList(env['Notice-book'], type, op, Number(url.searchParams.get('id')));
-			} catch (e) {
-				return new Response('Error', {
-					status: 403,
-				});
+			if (url.pathname == '/update') {
+				try {
+					const type = url.searchParams.get('type') as NoticeType;
+					const op = url.searchParams.get('op') as NoticeOperation;
+					if (op == NoticeOperation.Add) return await updateNoticeList(env['Notice-book'], type, op, JSON.parse(await req.json()));
+					else op == NoticeOperation.Remove;
+					return await updateNoticeList(env['Notice-book'], type, op, Number(url.searchParams.get('id')));
+				} catch (e) {
+					return new Response('Error', {
+						status: 403,
+					});
+				}
 			}
 		}
 		return new Response('Unknown path');
