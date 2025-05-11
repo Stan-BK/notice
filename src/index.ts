@@ -23,10 +23,8 @@ export default {
 				if (url.pathname == '/update') {
 					try {
 						const type = url.searchParams.get('type') as NoticeType;
-						const op = url.searchParams.get('op') as NoticeOperation;
-						if (op == NoticeOperation.Add) return await updateNoticeList(env['Notice-book'], type, op, JSON.parse(await req.json()));
-						else op == NoticeOperation.Remove;
-						return await updateNoticeList(env['Notice-book'], type, op, Number(url.searchParams.get('id')));
+
+						return await updateNoticeList(env['Notice-book'], type, await req.text());
 					} catch (e) {
 						return new Response('Error', {
 							status: 403,
