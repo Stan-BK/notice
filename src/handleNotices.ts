@@ -8,6 +8,12 @@ export interface Notice {
 	minute: number;
 }
 
+async function getNoticeList(KV: KVNamespace, type: NoticeType): Promise<Notice[]> {
+	const notices = (await KV.get('notices:' + type, 'json')) as Notice[] | null;
+	if (notices === null) return [];
+	return notices;
+}
+
 async function updateNoticeList(KV: KVNamespace, type: NoticeType, opType: NoticeOperation.Remove, notice: number): Promise<Response>;
 async function updateNoticeList(KV: KVNamespace, type: NoticeType, opType: NoticeOperation.Add, notice: Notice): Promise<Response>;
 async function updateNoticeList(
@@ -31,4 +37,7 @@ async function updateNoticeList(
 	return new Response(`Notice List: ${type} Update!`);
 }
 
-export default updateNoticeList;
+export {
+	getNoticeList,
+	updateNoticeList
+};

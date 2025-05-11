@@ -1,6 +1,6 @@
 import { PushSubscription } from 'web-push';
 import { NoticeOperation, NoticeType } from './enums';
-import updateNoticeList from './handleNotices';
+import { getNoticeList, updateNoticeList } from './handleNotices';
 import { generateVAPIDKeys, subscribe } from './subscription';
 
 export default {
@@ -37,6 +37,10 @@ export default {
 				return new Response('Error', {
 					status: 403,
 				});
+			}
+		} else if (req.method == 'GET') {
+			if (url.pathname == '/noticeList') {
+				return new Response(JSON.stringify(await getNoticeList(env['Notice-book'], url.searchParams.get('type') as NoticeType)));
 			}
 		}
 		return new Response('Unknown path');
