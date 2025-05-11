@@ -3,15 +3,17 @@ import { NoticeOperation, NoticeType } from './enums';
 import { getNoticeList, updateNoticeList } from './handleNotices';
 import { generateVAPIDKeys, subscribe } from './subscription';
 
+const PATH = '/worker'
+
 export default {
 	async fetch(req, env) {
 		const url = new URL(req.url);
 
 		if (req.method == 'POST') {
 			try {
-				if (url.pathname == '/generateVAPIDKeys') return await generateVAPIDKeys(env['Notice-book'], JSON.parse(await req.json()));
+				if (url.pathname == `${PATH}/generateVAPIDKeys`) return await generateVAPIDKeys(env['Notice-book'], JSON.parse(await req.json()));
 
-				if (url.pathname == '/subscribe') {
+				if (url.pathname == `${PATH}/subscribe`) {
 					const { temporaryId, subscription } = JSON.parse(await req.json()) as {
 						temporaryId: string;
 						subscription: PushSubscription;
@@ -37,7 +39,7 @@ export default {
 				});
 			}
 		} else if (req.method == 'GET') {
-			if (url.pathname == '/noticeList') {
+			if (url.pathname == `${PATH}/noticeList`) {
 				return new Response(JSON.stringify(await getNoticeList(env['Notice-book'], url.searchParams.get('type') as NoticeType)));
 			}
 		}
