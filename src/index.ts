@@ -3,7 +3,7 @@ import { NoticeOperation, NoticeType } from './enums';
 import { getNoticeList, Notice, updateNoticeList } from './handleNotices';
 import { generateVAPIDKeys, subscribe } from './subscription';
 
-const PATH = '/worker'
+const PATH = '/worker';
 
 export default {
 	async fetch(req, env) {
@@ -25,13 +25,10 @@ export default {
 				if (url.pathname == '/update') {
 					try {
 						const type = url.searchParams.get('type') as NoticeType;
-						const {
-							endPoint,
-							noticeList,
-						} = JSON.parse(await req.json())as {
+						const { endPoint, noticeList } = JSON.parse(await req.json()) as {
 							endPoint: string;
-							noticeList: Notice
-						}
+							noticeList: Notice;
+						};
 
 						return await updateNoticeList(env['Notice-book'], endPoint, type, JSON.stringify(noticeList));
 					} catch (e) {
@@ -40,17 +37,19 @@ export default {
 						});
 					}
 				}
+
+				if (url.pathname == `${PATH}/noticeList`) {
+					const { endPoint } = (await req.json()) as {
+						endPoint: string;
+					};
+					return new Response(
+						JSON.stringify(await getNoticeList(env['Notice-book'], endPoint, url.searchParams.get('type') as NoticeType))
+					);
+				}
 			} catch (e) {
 				return new Response('Error', {
 					status: 403,
 				});
-			}
-		} else if (req.method == 'GET') {
-			if (url.pathname == `${PATH}/noticeList`) {
-				const { endPoint } = await req.json() as {
-					endPoint: string;
-				};
-				return new Response(JSON.stringify(await getNoticeList(env['Notice-book'], endPoint, url.searchParams.get('type') as NoticeType)));
 			}
 		}
 		return new Response('Unknown path');
