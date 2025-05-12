@@ -1,4 +1,4 @@
-import { NoticeOperation, NoticeType } from './enums';
+import { NoticeType } from './enums';
 
 export interface Notice {
 	noticeName: string;
@@ -7,14 +7,14 @@ export interface Notice {
 	minute: number;
 }
 
-async function getNoticeList(KV: KVNamespace, endPoint: string, type: NoticeType): Promise<string> {
-	const noticeList = (await KV.get(`notice_${type}_${endPoint}`, 'json')) as string | null;
-	if (noticeList === null) return '[]';
+async function getNoticeList(KV: KVNamespace, endPoint: string, type: NoticeType) {
+	const noticeList = (await KV.get<Notice>(`notice_${type}_${endPoint}`, 'json'));
+	if (noticeList === null) return [];
 	return noticeList;
 }
 
-async function updateNoticeList(KV: KVNamespace, endPoint: string, type: NoticeType, notices: string): Promise<Response> {
-	await KV.put(`notice_${type}_${endPoint}`, notices);
+async function updateNoticeList(KV: KVNamespace, endPoint: string, type: NoticeType, notices: Notice[]): Promise<Response> {
+	await KV.put(`notice_${type}_${endPoint}`, JSON.stringify(notices));
 	return new Response(`Notice List: ${type} Update!`);
 }
 

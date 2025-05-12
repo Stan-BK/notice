@@ -27,10 +27,10 @@ export default {
 						const type = url.searchParams.get('type') as NoticeType;
 						const { endPoint, noticeList } = await req.json() as {
 							endPoint: string;
-							noticeList: Notice;
+							noticeList: Notice[];
 						};
 
-						return await updateNoticeList(env['Notice-book'], endPoint, type, JSON.stringify(noticeList));
+						return await updateNoticeList(env['Notice-book'], endPoint, type, noticeList);
 					} catch (e) {
 						return new Response('Error', {
 							status: 403,
