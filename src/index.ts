@@ -11,10 +11,10 @@ export default {
 
 		if (req.method == 'POST') {
 			try {
-				if (url.pathname == `${PATH}/generateVAPIDKeys`) return await generateVAPIDKeys(env['Notice-book'], JSON.parse(await req.json()));
+				if (url.pathname == `${PATH}/generateVAPIDKeys`) return await generateVAPIDKeys(env['Notice-book'], await req.text());
 
 				if (url.pathname == `${PATH}/subscribe`) {
-					const { temporaryId, subscription } = JSON.parse(await req.json()) as {
+					const { temporaryId, subscription } = await req.json() as {
 						temporaryId: string;
 						subscription: PushSubscription;
 					};
@@ -25,7 +25,7 @@ export default {
 				if (url.pathname == `${PATH}/update`) {
 					try {
 						const type = url.searchParams.get('type') as NoticeType;
-						const { endPoint, noticeList } = JSON.parse(await req.json()) as {
+						const { endPoint, noticeList } = await req.json() as {
 							endPoint: string;
 							noticeList: Notice;
 						};
