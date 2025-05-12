@@ -1,29 +1,21 @@
 import { NoticeOperation, NoticeType } from './enums';
 
 export interface Notice {
-	id: number;
 	noticeName: string;
 	description: string;
 	hour: number;
 	minute: number;
 }
 
-async function getNoticeList(KV: KVNamespace, type: NoticeType): Promise<Notice[]> {
-	const notices = (await KV.get('notices:' + type, 'json')) as Notice[] | null;
-	if (notices === null) return [];
-	return notices;
+async function getNoticeList(KV: KVNamespace, endPoint: string, type: NoticeType): Promise<string> {
+	const noticeList = (await KV.get(`notice_${type}_${endPoint}`, 'json')) as string | null;
+	if (noticeList === null) return '[]';
+	return noticeList;
 }
 
-async function updateNoticeList(
-	KV: KVNamespace,
-	type: NoticeType,
-	notices: string
-): Promise<Response> {
-	await KV.put('notices:' + type, notices);
+async function updateNoticeList(KV: KVNamespace, endPoint: string, type: NoticeType, notices: string): Promise<Response> {
+	await KV.put(`notice_${type}_${endPoint}`, notices);
 	return new Response(`Notice List: ${type} Update!`);
 }
 
-export {
-	getNoticeList,
-	updateNoticeList
-};
+export { getNoticeList, updateNoticeList };

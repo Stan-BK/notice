@@ -1,6 +1,6 @@
 import { PushSubscription } from 'web-push';
 import { NoticeOperation, NoticeType } from './enums';
-import { getNoticeList, updateNoticeList } from './handleNotices';
+import { getNoticeList, Notice, updateNoticeList } from './handleNotices';
 import { generateVAPIDKeys, subscribe } from './subscription';
 
 const PATH = '/worker'
@@ -25,8 +25,15 @@ export default {
 				if (url.pathname == '/update') {
 					try {
 						const type = url.searchParams.get('type') as NoticeType;
+						const {
+							endPoint,
+							noticeList,
+						} = JSON.parse(await req.json())as {
+							endPoint: string;
+							noticeList: Notice
+						}
 
-						return await updateNoticeList(env['Notice-book'], type, await req.text());
+						return await updateNoticeList(env['Notice-book'], endPoint, type, JSON.stringify(noticeList));
 					} catch (e) {
 						return new Response('Error', {
 							status: 403,
@@ -40,7 +47,10 @@ export default {
 			}
 		} else if (req.method == 'GET') {
 			if (url.pathname == `${PATH}/noticeList`) {
-				return new Response(JSON.stringify(await getNoticeList(env['Notice-book'], url.searchParams.get('type') as NoticeType)));
+				const { endPoint } = await req.json() as {
+					endPoint: string;
+				};
+				return new Response(JSON.stringify(await getNoticeList(env['Notice-book'], endPoint, url.searchParams.get('type') as NoticeType)));
 			}
 		}
 		return new Response('Unknown path');
