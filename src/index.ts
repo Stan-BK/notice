@@ -22,7 +22,7 @@ export default {
 					return await subscribe(env['Notice-book'], temporaryId, subscription);
 				}
 
-				if (url.pathname == '/update') {
+				if (url.pathname == `${PATH}/update`) {
 					try {
 						const type = url.searchParams.get('type') as NoticeType;
 						const { endPoint, noticeList } = JSON.parse(await req.json()) as {
