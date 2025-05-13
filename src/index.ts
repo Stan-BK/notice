@@ -80,8 +80,8 @@ export default {
 				if (notice.hour == time.get('hour') && notice.minute == time.get('minute')) {
 					await sendNotification(JSON.parse((await KV.get(`subscription_${endPoint}`))!) as PushSubscription, notice, {
 						subject: SUBJECT,
-						publicKey: (await KV.get(`vapid_${VapidKeys.PublicKey}_${endPoint}`))!,
-						privateKey: (await KV.get(`vapid_${VapidKeys.PrivateKey}_${endPoint}`))!,
+						publicKey: (await KV.get(`${VapidKeys.PublicKey}_${endPoint}`))!,
+						privateKey: (await KV.get(`${VapidKeys.PrivateKey}_${endPoint}`))!,
 					});
 				}
 			}
