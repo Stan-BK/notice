@@ -1,4 +1,12 @@
+name = "notice"
+main = "src/index.ts"
+compatibility_date = "2025-05-13"
+compatibility_flags = ["nodejs_compat"]
+
 # wrangler.toml (wrangler v3.88.0^)
 [observability.logs]
 enabled = true
 invocation_logs = true
+
+[triggers]
+crons = ["* 0 * * *"]

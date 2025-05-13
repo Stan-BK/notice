@@ -1,5 +1,6 @@
-import webPush, { PushSubscription } from 'web-push';
+import webPush, { type PushSubscription, RequestOptions, sendNotification } from 'web-push';
 import { VapidKeys } from './enums';
+import { Notice } from './handleNotices';
 
 export const generateVAPIDKeys = async (KV: KVNamespace, temporaryId: string) => {
 	const { publicKey, privateKey } = webPush.generateVAPIDKeys();
@@ -32,3 +33,9 @@ export const subscribe = async (KV: KVNamespace, temporaryId: string, subscripti
 
 	return new Response('Subscription successful');
 };
+
+export const pushNotification = async (pushSubscription: PushSubscription, notice: Notice, vapidDetails: RequestOptions['vapidDetails']) => {
+	sendNotification(pushSubscription, JSON.stringify(notice), {
+		vapidDetails
+	});
+}

@@ -1,9 +1,11 @@
 import { PushSubscription } from 'web-push';
-import { NoticeOperation, NoticeType } from './enums';
+import { NoticeType, VapidKeys } from './enums';
 import { getNoticeList, Notice, updateNoticeList } from './handleNotices';
-import { generateVAPIDKeys, subscribe } from './subscription';
+import { generateVAPIDKeys, pushNotification as sendNotification, subscribe } from './subscription';
+import dayjs from 'dayjs';
 
 const PATH = '/worker';
+const SUBJECT = 'https://notice.geminikspace.com';
 
 export default {
 	async fetch(req, env) {
@@ -14,7 +16,7 @@ export default {
 				if (url.pathname == `${PATH}/generateVAPIDKeys`) return await generateVAPIDKeys(env['Notice-book'], await req.text());
 
 				if (url.pathname == `${PATH}/subscribe`) {
-					const { temporaryId, subscription } = await req.json() as {
+					const { temporaryId, subscription } = (await req.json()) as {
 						temporaryId: string;
 						subscription: PushSubscription;
 					};
@@ -25,7 +27,7 @@ export default {
 				if (url.pathname == `${PATH}/update`) {
 					try {
 						const type = url.searchParams.get('type') as NoticeType;
-						const { endPoint, noticeList } = await req.json() as {
+						const { endPoint, noticeList } = (await req.json()) as {
 							endPoint: string;
 							noticeList: Notice[];
 						};
@@ -58,15 +60,31 @@ export default {
 	// The scheduled handler is invoked at the interval set in our wrangler.jsonc's
 	// [[triggers]] configuration.
 	async scheduled(event, env, ctx): Promise<void> {
-		// A Cron Trigger can make requests to other endpoints on the Internet,
-		// publish to a Queue, query a D1 Database, and much more.
-		//
-		// We'll keep it simple and make an API call to a Cloudflare API:
-		let resp = await fetch('https://api.cloudflare.com/client/v4/ips');
-		let wasSuccessful = resp.ok ? 'success' : 'fail';
-
-		// You could store this result in KV, write to a D1 Database, or publish to a Queue.
-		// In this template, we'll just log the result:
-		console.log(`trigger fired at ${event.cron}: ${wasSuccessful}`);
+		const time = dayjs(event.scheduledTime);
+		const KV = env['Notice-book'];
+		const keys = await KV.list();
+		const needToNotice: {
+			endPoint: string;
+			notices: Notice[];
+		}[] = [];
+		for (const key of keys.keys) {
+			if (key.name.startsWith(`notice_${NoticeType.Today}`)) {
+				needToNotice.push({
+					endPoint: key.name.split('_')[3],
+					notices: (await KV.get(key.name, 'json'))!,
+				});
+			}
+		}
+		for (const { endPoint, notices } of needToNotice) {
+			for (const notice of notices) {
+				if (notice.hour == time.get('hour') && notice.minute == time.get('minute')) {
+					await sendNotification(JSON.parse((await KV.get(`subscription_${endPoint}`))!) as PushSubscription, notice, {
+						subject: SUBJECT,
+						publicKey: (await KV.get(`vapid_${VapidKeys.PublicKey}_${endPoint}`))!,
+						privateKey: (await KV.get(`vapid_${VapidKeys.PrivateKey}_${endPoint}`))!,
+					});
+				}
+			}
+		}
 	},
 } satisfies ExportedHandler<Env>;

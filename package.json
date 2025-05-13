@@ -15,6 +15,7 @@
 		"wrangler": "^4.14.4"
 	},
 	"dependencies": {
+		"dayjs": "^1.11.13",
 		"web-push": "^3.6.7"
 	}
 }
