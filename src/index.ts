@@ -55,17 +55,26 @@ export default {
 					};
 					const KV = env['Notice-book'];
 
-					await sendNotification(JSON.parse((await KV.get(`subscription_${endPoint}`))!) as PushSubscription, {
-						noticeName: 'test',
-						description: 'That\'s a test',
-						hour: dayjs().add(1, 'minute').get('hour'),
-						minute: dayjs().add(1,'minute').get('minute'),
-					}, {
-						subject: SUBJECT,
-						publicKey: (await KV.get(`${VapidKeys.PublicKey}_${endPoint}`))!,
-						privateKey: (await KV.get(`${VapidKeys.PrivateKey}_${endPoint}`))!,
-					});
-					return new Response('test started');
+					try {
+						await sendNotification(
+							JSON.parse((await KV.get(`subscription_${endPoint}`))!) as PushSubscription,
+							{
+								noticeName: 'test',
+								description: "That's a test",
+								hour: dayjs().add(1, 'minute').get('hour'),
+								minute: dayjs().add(1, 'minute').get('minute'),
+							},
+							{
+								subject: SUBJECT,
+								publicKey: (await KV.get(`${VapidKeys.PublicKey}_${endPoint}`))!,
+								privateKey: (await KV.get(`${VapidKeys.PrivateKey}_${endPoint}`))!,
+							}
+						);
+					} catch (e) {
+						console.error(e);
+						return new Response('test failed');
+					}
+					return new Response('test success');
 				}
 			} catch (e) {
 				return new Response('Error', {

@@ -34,8 +34,9 @@ export const subscribe = async (KV: KVNamespace, temporaryId: string, subscripti
 	return new Response('Subscription successful');
 };
 
-export const pushNotification = async (pushSubscription: PushSubscription, notice: Notice, vapidDetails: RequestOptions['vapidDetails']) => {
+export const pushNotification = async (pushSubscription: PushSubscription, notice: Notice, vapidDetails: RequestOptions['vapidDetails']) =>
 	sendNotification(pushSubscription, JSON.stringify(notice), {
-		vapidDetails
+		vapidDetails,
+		timeout: 10000,
 	});
-}
+
