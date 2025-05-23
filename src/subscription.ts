@@ -1,6 +1,7 @@
-import webPush, { type PushSubscription, RequestOptions, sendNotification } from 'web-push';
+import webPush, { generateRequestDetails, type PushSubscription, RequestOptions, sendNotification } from 'web-push';
 import { VapidKeys } from './enums';
 import { Notice } from './handleNotices';
+import url from 'url';
 
 export const generateVAPIDKeys = async (KV: KVNamespace, temporaryId: string) => {
 	const { publicKey, privateKey } = webPush.generateVAPIDKeys();
@@ -34,9 +35,26 @@ export const subscribe = async (KV: KVNamespace, temporaryId: string, subscripti
 	return new Response('Subscription successful');
 };
 
-export const pushNotification = async (pushSubscription: PushSubscription, notice: Notice, vapidDetails: RequestOptions['vapidDetails']) =>
-	sendNotification(pushSubscription, JSON.stringify(notice), {
-		vapidDetails,
-		timeout: 10000,
-	});
+// export const pushNotification = async (pushSubscription: PushSubscription, notice: Notice, vapidDetails: RequestOptions['vapidDetails']) =>
+// 	sendNotification(pushSubscription, JSON.stringify(notice), {
+// 		vapidDetails,
+// 		timeout: 10000,
+// 	});
 
+export const pushNotification = async (subscription: PushSubscription, notice: Notice, vapidDetails: RequestOptions['vapidDetails']) => {
+	let requestDetails;
+	try {
+		requestDetails = generateRequestDetails(subscription, JSON.stringify(notice), {
+			vapidDetails
+		});
+	} catch (err) {
+		return Promise.reject(err);
+	}
+
+	fetch(requestDetails.endpoint, {
+		headers: requestDetails.headers,
+		method: requestDetails.method,
+		body: requestDetails.body,
+		signal: AbortSignal.timeout(10000),
+	});
+}
