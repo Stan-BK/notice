@@ -52,9 +52,15 @@ export const pushNotification = async (subscription: PushSubscription, notice: N
 	}
 
 	fetch(requestDetails.endpoint, {
-		headers: requestDetails.headers,
+		headers: {
+			...requestDetails.headers,
+			'Connection': 'keep-alive',
+			'Host': 'fcm.googleapis.com'
+		},
 		method: requestDetails.method,
 		body: requestDetails.body,
 		signal: AbortSignal.timeout(10000),
-	});
+	}).then(response => response.text())
+		.then(result => console.log(result))
+		.catch(error => console.log('error', error));
 }
