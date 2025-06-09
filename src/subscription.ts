@@ -48,7 +48,8 @@ export const pushNotification = async (subscription: PushSubscription, notice: N
 			vapidDetails
 		});
 	} catch (err) {
-		return Promise.reject(err);
+		await pushNotification(subscription, notice, vapidDetails);
+		return;
 	}
 
 	await fetch(requestDetails.endpoint, {
