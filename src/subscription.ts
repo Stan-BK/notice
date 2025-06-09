@@ -51,16 +51,10 @@ export const pushNotification = async (subscription: PushSubscription, notice: N
 		return Promise.reject(err);
 	}
 
-	fetch(requestDetails.endpoint, {
-		headers: {
-			...requestDetails.headers,
-			'Connection': 'keep-alive',
-			'Host': 'fcm.googleapis.com'
-		},
+	await fetch(requestDetails.endpoint, {
+		headers: requestDetails.headers,
 		method: requestDetails.method,
 		body: requestDetails.body,
 		signal: AbortSignal.timeout(10000),
-	}).then(response => response.text())
-		.then(result => console.log(result))
-		.catch(error => console.log('error', error));
+	});
 }
