@@ -103,16 +103,19 @@ export default {
 				});
 			}
 		}
+		let needNotifications = []
 		for (const { endPoint, notices } of needToNotice) {
 			for (const notice of notices) {
 				if (notice.hour == time.get('hour') && notice.minute == time.get('minute')) {
-					sendNotification(JSON.parse((await KV.get(`subscription_${endPoint}`))!) as PushSubscription, notice, {
-						subject: SUBJECT,
-						publicKey: (await KV.get(`${VapidKeys.PublicKey}_${endPoint}`))!,
-						privateKey: (await KV.get(`${VapidKeys.PrivateKey}_${endPoint}`))!,
-					});
+					needNotifications.push(
+						sendNotification(JSON.parse((await KV.get(`subscription_${endPoint}`))!) as PushSubscription, notice, {
+							subject: SUBJECT,
+							publicKey: (await KV.get(`${VapidKeys.PublicKey}_${endPoint}`))!,
+							privateKey: (await KV.get(`${VapidKeys.PrivateKey}_${endPoint}`))!,
+						}))
 				}
 			}
 		}
+		await Promise.allSettled(needNotifications).catch(() => {})
 	},
 } satisfies ExportedHandler<Env>;
