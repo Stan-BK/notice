@@ -98,7 +98,7 @@ export default {
 		for (const key of keys.keys) {
 			if (key.name.startsWith(`notice_${NoticeType.Today}`)) {
 				needToNotice.push({
-					endPoint: key.name.split('_')[3],
+					endPoint: key.name.replace(`notice_${NoticeType.Today}_`, ''),
 					notices: (await KV.get(key.name, 'json'))!,
 				});
 			}
