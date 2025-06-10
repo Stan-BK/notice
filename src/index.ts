@@ -3,7 +3,8 @@ import { NoticeType, VapidKeys } from './enums';
 import { getNoticeList, Notice, updateNoticeList } from './handleNotices';
 import { generateVAPIDKeys, pushNotification as sendNotification, subscribe } from './subscription';
 import dayjs from 'dayjs';
-import { utc } from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+dayjs.extend(utc)
 
 const PATH = '/worker';
 const SUBJECT = 'https://notice.geminikspace.com';
