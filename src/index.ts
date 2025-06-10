@@ -3,6 +3,7 @@ import { NoticeType, VapidKeys } from './enums';
 import { getNoticeList, Notice, updateNoticeList } from './handleNotices';
 import { generateVAPIDKeys, pushNotification as sendNotification, subscribe } from './subscription';
 import dayjs from 'dayjs';
+import { utc } from 'dayjs';
 
 const PATH = '/worker';
 const SUBJECT = 'https://notice.geminikspace.com';
@@ -88,7 +89,7 @@ export default {
 	// The scheduled handler is invoked at the interval set in our wrangler.jsonc's
 	// [[triggers]] configuration.
 	async scheduled(event, env, ctx): Promise<void> {
-		const time = dayjs(event.scheduledTime);
+		const time = dayjs(event.scheduledTime).utc().add(8, 'hour');
 		const KV = env['Notice-book'];
 		const keys = await KV.list();
 		const needToNotice: {
