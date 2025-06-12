@@ -7,7 +7,6 @@ import utc from 'dayjs/plugin/utc';
 dayjs.extend(utc)
 
 const PATH = '/worker';
-const SUBJECT = 'https://notice.geminikspace.com';
 
 export default {
 	async fetch(req, env) {
@@ -67,7 +66,7 @@ export default {
 								minute: dayjs().add(1, 'minute').get('minute'),
 							},
 							{
-								subject: SUBJECT,
+								subject: env.SUBSCRIPTION_PATH,
 								publicKey: (await KV.get(`${VapidKeys.PublicKey}_${endPoint}`))!,
 								privateKey: (await KV.get(`${VapidKeys.PrivateKey}_${endPoint}`))!,
 							}
@@ -111,7 +110,7 @@ export default {
 				if (notice.hour == time.get('hour') && notice.minute == time.get('minute')) {
 					needNotifications.push(
 						sendNotification(JSON.parse((await KV.get(`subscription_${endPoint}`))!) as PushSubscription, notice, {
-							subject: SUBJECT,
+							subject: env.SUBSCRIPTION_PATH,
 							publicKey: (await KV.get(`${VapidKeys.PublicKey}_${endPoint}`))!,
 							privateKey: (await KV.get(`${VapidKeys.PrivateKey}_${endPoint}`))!,
 						}))
