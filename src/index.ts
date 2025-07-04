@@ -1,7 +1,7 @@
 import { PushSubscription } from 'web-push';
 import { NoticeType, VapidKeys } from './enums';
 import { getNoticeList, Notice, updateNoticeList } from './handleNotices';
-import { generateVAPIDKeys, pushNotification as sendNotification, subscribe } from './subscription';
+import { generateVAPIDKeys, pushNotification as sendNotification, subscribe, unsubscribe } from './subscription';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 dayjs.extend(utc)
@@ -23,6 +23,14 @@ export default {
 					};
 
 					return await subscribe(env['Notice-book'], temporaryId, subscription);
+				}
+
+				if (url.pathname == `${PATH}/unsubscribe`) {
+					const { endPoint } = (await req.json()) as {
+						endPoint: string;
+					};
+
+					return await unsubscribe(env['Notice-book'], endPoint);
 				}
 
 				if (url.pathname == `${PATH}/update`) {
@@ -117,6 +125,6 @@ export default {
 				}
 			}
 		}
-		await Promise.allSettled(needNotifications).catch(() => {})
+		await Promise.allSettled(needNotifications).catch(() => { })
 	},
 } satisfies ExportedHandler<Env>;

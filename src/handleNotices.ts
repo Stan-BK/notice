@@ -18,4 +18,8 @@ async function updateNoticeList(KV: KVNamespace, endPoint: string, type: NoticeT
 	return new Response(`Notice List: ${type} Update!`);
 }
 
-export { getNoticeList, updateNoticeList };
+async function removeNoticeList(KV: KVNamespace, endPoint: string, type: NoticeType) {
+	await KV.delete(`notice_${type}_${endPoint}`);
+}
+
+export { getNoticeList, updateNoticeList, removeNoticeList };

@@ -1,6 +1,6 @@
 import webPush, { generateRequestDetails, type PushSubscription, RequestOptions, sendNotification } from 'web-push';
-import { VapidKeys } from './enums';
-import { Notice } from './handleNotices';
+import { NoticeType, VapidKeys } from './enums';
+import { Notice, removeNoticeList } from './handleNotices';
 import url from 'url';
 
 export const generateVAPIDKeys = async (KV: KVNamespace, temporaryId: string) => {
@@ -33,6 +33,19 @@ export const subscribe = async (KV: KVNamespace, temporaryId: string, subscripti
 	await KV.put('subscription_' + subscription.endpoint, JSON.stringify(subscription));
 
 	return new Response('Subscription successful');
+};
+
+export const unsubscribe = async (KV: KVNamespace, endpoint: string) => {
+	await KV.delete('subscription_' + endpoint);
+	await KV.delete(`${VapidKeys.PublicKey}_${endpoint}`);
+	await KV.delete(`${VapidKeys.PrivateKey}_${endpoint}`);
+
+	await removeNoticeList(KV, endpoint, NoticeType.All);
+	await removeNoticeList(KV, endpoint, NoticeType.Today);
+	await removeNoticeList(KV, endpoint, NoticeType.Tomorrow);
+	await removeNoticeList(KV, endpoint, NoticeType.Yesterday);
+
+	return new Response('Unsubscribe successful');
 };
 
 // export const pushNotification = async (pushSubscription: PushSubscription, notice: Notice, vapidDetails: RequestOptions['vapidDetails']) =>
