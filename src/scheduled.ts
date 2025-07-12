@@ -115,7 +115,7 @@ export async function updateDailySchedule(event: ScheduledController, env: Env, 
 	await Promise.allSettled(needToSynchronize).catch(() => {});
 
 	function getLastType(key: string) {
-		const [key1, noticeType, key2] = key.split('_');
+		const [key1, noticeType, ...key2] = key.split('_');
 		let lastType: NoticeType = NoticeType.All;
 
 		switch (noticeType) {
@@ -130,11 +130,11 @@ export async function updateDailySchedule(event: ScheduledController, env: Env, 
 				break;
 		}
 
-		return `${key1}_${lastType}_${key2}`;
+		return `${key1}_${lastType}_${key2.join('')}`;
 	}
 
 	function getNextType(key: string) {
-		const [key1, noticeType, key2] = key.split('_');
+		const [key1, noticeType, ...key2] = key.split('_');
 		let nextType: NoticeType = NoticeType.All;
 
 		switch (noticeType) {
@@ -146,6 +146,6 @@ export async function updateDailySchedule(event: ScheduledController, env: Env, 
 				break;
 		}
 
-		return `${key1}_${nextType}_${key2}`;
+		return `${key1}_${nextType}_${key2.join('')}`;
 	}
 }
