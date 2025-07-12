@@ -3,8 +3,7 @@ import { NoticeType, VapidKeys } from './enums';
 import { getNoticeList, Notice, updateNoticeList } from './handleNotices';
 import { generateVAPIDKeys, pushNotification as sendNotification, subscribe, unsubscribe } from './subscription';
 import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-dayjs.extend(utc)
+import { pollSchedule, updateDailySchedule } from './scheduled';
 
 const PATH = '/worker';
 
@@ -97,34 +96,7 @@ export default {
 	// The scheduled handler is invoked at the interval set in our wrangler.jsonc's
 	// [[triggers]] configuration.
 	async scheduled(event, env, ctx): Promise<void> {
-		const time = dayjs(event.scheduledTime).utc().add(8, 'hour');
-		const KV = env['Notice-book'];
-		const keys = await KV.list();
-		const needToNotice: {
-			endPoint: string;
-			notices: Notice[];
-		}[] = [];
-		for (const key of keys.keys) {
-			if (key.name.startsWith(`notice_${NoticeType.Today}`)) {
-				needToNotice.push({
-					endPoint: key.name.replace(`notice_${NoticeType.Today}_`, ''),
-					notices: (await KV.get(key.name, 'json'))!,
-				});
-			}
-		}
-		let needNotifications = []
-		for (const { endPoint, notices } of needToNotice) {
-			for (const notice of notices) {
-				if (notice.hour == time.get('hour') && notice.minute == time.get('minute')) {
-					needNotifications.push(
-						sendNotification(JSON.parse((await KV.get(`subscription_${endPoint}`))!) as PushSubscription, notice, {
-							subject: env.SUBSCRIPTION_PATH,
-							publicKey: (await KV.get(`${VapidKeys.PublicKey}_${endPoint}`))!,
-							privateKey: (await KV.get(`${VapidKeys.PrivateKey}_${endPoint}`))!,
-						}))
-				}
-			}
-		}
-		await Promise.allSettled(needNotifications).catch(() => { })
+		await updateDailySchedule(event, env, ctx);
+		await pollSchedule(event, env, ctx);
 	},
 } satisfies ExportedHandler<Env>;
