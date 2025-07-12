@@ -130,7 +130,7 @@ export async function updateDailySchedule(event: ScheduledController, env: Env, 
 				break;
 		}
 
-		return `${key1}_${lastType}_${key2.join('')}`;
+		return `${key1}_${lastType}_${key2.join('_')}`;
 	}
 
 	function getNextType(key: string) {
@@ -146,6 +146,6 @@ export async function updateDailySchedule(event: ScheduledController, env: Env, 
 				break;
 		}
 
-		return `${key1}_${nextType}_${key2.join('')}`;
+		return `${key1}_${nextType}_${key2.join('_')}`;
 	}
 }
