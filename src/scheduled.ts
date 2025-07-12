@@ -52,10 +52,13 @@ export async function updateDailySchedule(event: ScheduledController, env: Env, 
 		tomorrow: new Map<string, Notice[]>(),
 	};
 	const kvs = Object.values(noticeListMap);
+	const nameSet = new Set();
 
 	for (const key of keys.keys) {
 		if (key.name.startsWith(`notice_`)) {
 			const type = key.name.split('_')[1] as NoticeType;
+
+			nameSet.add(key.name);
 			noticeListMap[type].set(key.name, (await KV.get(key.name, 'json'))!);
 		}
 	}
@@ -75,7 +78,10 @@ export async function updateDailySchedule(event: ScheduledController, env: Env, 
 									return JSON.parse(value) as Notice[];
 								}
 							});
-							await KV.put(lastType, JSON.stringify(lastTypeNotices?.concat(notices)));
+							await KV.put(lastType, JSON.stringify(lastTypeNotices ? lastTypeNotices?.concat(notices) : notices));
+							if (!nameSet.has(getNextType(key))) {
+								await KV.delete(key);
+							}
 						})()
 					)
 				);
@@ -86,6 +92,9 @@ export async function updateDailySchedule(event: ScheduledController, env: Env, 
 						(async () => {
 							const lastType = getLastType(key);
 							await KV.put(lastType, JSON.stringify(notices));
+							if (!nameSet.has(getNextType(key))) {
+								await KV.delete(key);
+							}
 						})()
 					)
 				);
@@ -96,7 +105,7 @@ export async function updateDailySchedule(event: ScheduledController, env: Env, 
 						(async () => {
 							const lastType = getLastType(key);
 							await KV.put(lastType, JSON.stringify(notices));
-							await KV.delete(key); // delete today's notice list
+							await KV.delete(key);
 						})()
 					)
 				);
@@ -122,5 +131,21 @@ export async function updateDailySchedule(event: ScheduledController, env: Env, 
 		}
 
 		return `${key1}_${lastType}_${key2}`;
+	}
+
+	function getNextType(key: string) {
+		const [key1, noticeType, key2] = key.split('_');
+		let nextType: NoticeType = NoticeType.All;
+
+		switch (noticeType) {
+			case NoticeType.Yesterday:
+				nextType = NoticeType.Today;
+				break;
+			case NoticeType.Today:
+				nextType = NoticeType.Tomorrow;
+				break;
+		}
+
+		return `${key1}_${nextType}_${key2}`;
 	}
 }
