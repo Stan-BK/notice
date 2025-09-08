@@ -8,5 +8,16 @@ compatibility_flags = ["nodejs_compat"]
 enabled = true
 invocation_logs = true
 
+[vars]
+SUBSCRIPTION_PATH = [your_host_url]/worker
+
+[[routes]]
+pattern = [your_host_url]/worker
+zone_id = [your_zone_id]
+
 [triggers]
 crons = ["* * * * *"]
+
+kv_namespaces = [
+  { binding = "Notice-Book", id = "your_kv_namespace_id" }
+]
