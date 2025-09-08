@@ -31,7 +31,7 @@
 	 */
 	"kv_namespaces": [
 		{
-			"binding": "Notice-book",
+			"binding": "Notice-Book",
 			"id": "<YOUR_BINDING_ID>"
 		}
 	]

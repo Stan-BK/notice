@@ -8,7 +8,7 @@ dayjs.extend(utc);
 
 export async function pollSchedule(event: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
 	const time = dayjs(event.scheduledTime).utc().add(8, 'hour');
-	const KV = env['Notice-book'];
+	const KV = env['Notice-Book'];
 	const keys = await KV.list();
 	const needToNotice: {
 		endPoint: string;
@@ -43,7 +43,7 @@ export async function updateDailySchedule(event: ScheduledController, env: Env, 
 	const time = dayjs(event.scheduledTime).utc().add(8, 'hour');
 	if (time.get('hour') != 0 && time.get('minute') != 0) return;
 
-	const KV = env['Notice-book'];
+	const KV = env['Notice-Book'];
 	const keys = await KV.list();
 	const noticeListMap: Record<NoticeType, Map<string, Notice[]>> = {
 		all: new Map<string, Notice[]>(),

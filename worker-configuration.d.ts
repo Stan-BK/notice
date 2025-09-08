@@ -3,7 +3,7 @@
 // Runtime types generated with workerd@1.20250507.0 2025-05-09
 declare namespace Cloudflare {
 	interface Env {
-		"Notice-book": KVNamespace;
+		"Notice-Book": KVNamespace;
 		"SUBSCRIPTION_PATH": string;
 	}
 }

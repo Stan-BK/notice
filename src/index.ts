@@ -13,7 +13,7 @@ export default {
 
 		if (req.method == 'POST') {
 			try {
-				if (url.pathname == `${PATH}/generateVAPIDKeys`) return await generateVAPIDKeys(env['Notice-book'], await req.text());
+				if (url.pathname == `${PATH}/generateVAPIDKeys`) return await generateVAPIDKeys(env['Notice-Book'], await req.text());
 
 				if (url.pathname == `${PATH}/subscribe`) {
 					const { temporaryId, subscription } = (await req.json()) as {
@@ -21,7 +21,7 @@ export default {
 						subscription: PushSubscription;
 					};
 
-					return await subscribe(env['Notice-book'], temporaryId, subscription);
+					return await subscribe(env['Notice-Book'], temporaryId, subscription);
 				}
 
 				if (url.pathname == `${PATH}/unsubscribe`) {
@@ -29,7 +29,7 @@ export default {
 						endPoint: string;
 					};
 
-					return await unsubscribe(env['Notice-book'], endPoint);
+					return await unsubscribe(env['Notice-Book'], endPoint);
 				}
 
 				if (url.pathname == `${PATH}/update`) {
@@ -40,7 +40,7 @@ export default {
 							noticeList: Notice[];
 						};
 
-						return await updateNoticeList(env['Notice-book'], endPoint, type, noticeList);
+						return await updateNoticeList(env['Notice-Book'], endPoint, type, noticeList);
 					} catch (e) {
 						return new Response('Error', {
 							status: 403,
@@ -53,7 +53,7 @@ export default {
 						endPoint: string;
 					};
 					return new Response(
-						JSON.stringify(await getNoticeList(env['Notice-book'], endPoint, url.searchParams.get('type') as NoticeType))
+						JSON.stringify(await getNoticeList(env['Notice-Book'], endPoint, url.searchParams.get('type') as NoticeType))
 					);
 				}
 
@@ -61,7 +61,7 @@ export default {
 					const { endPoint } = (await req.json()) as {
 						endPoint: string;
 					};
-					const KV = env['Notice-book'];
+					const KV = env['Notice-Book'];
 
 					try {
 						await sendNotification(
