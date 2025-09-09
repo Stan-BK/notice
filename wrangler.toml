@@ -9,15 +9,15 @@ enabled = true
 invocation_logs = true
 
 [vars]
-SUBSCRIPTION_PATH = [your_host_url]/worker
+SUBSCRIPTION_PATH = "[your_domain]/worker"
 
 [[routes]]
-pattern = [your_host_url]/worker
-zone_id = [your_zone_id]
+pattern = "[your_domain]/worker/*"
+zone_name = "[your_second_level_domain]"
 
 [triggers]
 crons = ["* * * * *"]
 
-kv_namespaces = [
-  { binding = "Notice-Book", id = "your_kv_namespace_id" }
-]
+[[kv_namespaces]]
+binding = "Notice-Book"
+id = "[your_kv_namespace_id]"
