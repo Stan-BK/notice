@@ -3,7 +3,7 @@ import { NoticeType, VapidKeys } from './enums';
 import { getNoticeList, Notice, updateNoticeList } from './handleNotices';
 import { generateVAPIDKeys, pushNotification as sendNotification, subscribe, unsubscribe } from './subscription';
 import dayjs from 'dayjs';
-import { pollSchedule, updateDailySchedule } from './scheduled';
+import { checkIsInTimeRange, pollSchedule, updateDailySchedule } from './scheduled';
 
 const PATH = '/worker';
 
@@ -96,6 +96,7 @@ export default {
 	// The scheduled handler is invoked at the interval set in our wrangler.jsonc's
 	// [[triggers]] configuration.
 	async scheduled(event, env, ctx): Promise<void> {
+		if (!checkIsInTimeRange(event, env, ctx)) return
 		await updateDailySchedule(event, env, ctx);
 		await pollSchedule(event, env, ctx);
 	},

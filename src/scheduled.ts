@@ -7,7 +7,7 @@ import { PushSubscription } from 'web-push';
 dayjs.extend(utc);
 
 export async function pollSchedule(event: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
-	const time = dayjs(event.scheduledTime).utc().add(8, 'hour');
+	const time = getTimeWithZone(event.scheduledTime);
 	const KV = env['Notice-Book'];
 	const keys = await KV.list();
 	const needToNotice: {
@@ -40,7 +40,7 @@ export async function pollSchedule(event: ScheduledController, env: Env, ctx: Ex
 }
 
 export async function updateDailySchedule(event: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
-	const time = dayjs(event.scheduledTime).utc().add(8, 'hour');
+	const time = getTimeWithZone(event.scheduledTime);
 	if (time.get('hour') != 0 && time.get('minute') != 0) return;
 
 	const KV = env['Notice-Book'];
@@ -148,4 +148,23 @@ export async function updateDailySchedule(event: ScheduledController, env: Env, 
 
 		return `${key1}_${nextType}_${key2.join('_')}`;
 	}
+}
+
+export function checkIsInTimeRange(event: ScheduledController, env: Env, ctx: ExecutionContext) {
+	const timeRange = env.TIME_RANGE;
+	if (timeRange.length !== 2) return true;
+
+	const time = getTimeWithZone(event.scheduledTime);
+	const startOfDay = time.startOf('day').valueOf();
+	const [start, end] = [
+		dayjs(startOfDay + timeRange[0]),
+		dayjs(startOfDay + timeRange[1])
+	];
+
+	return start.isBefore(time, 'minute') && end.isAfter(time, 'minute');
+}
+
+
+function getTimeWithZone(time: number) {
+	return dayjs(time).add(8, 'hour');
 }

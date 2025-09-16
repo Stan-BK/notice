@@ -5,6 +5,7 @@ declare namespace Cloudflare {
 	interface Env {
 		"Notice-Book": KVNamespace;
 		"SUBSCRIPTION_PATH": string;
+		"TIME_RANGE": [number, number] | []
 	}
 }
 interface Env extends Cloudflare.Env {}
