@@ -41,7 +41,7 @@ export async function pollSchedule(event: ScheduledController, env: Env, ctx: Ex
 
 export async function updateDailySchedule(event: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
 	const time = getTimeWithZone(event.scheduledTime);
-	if (time.get('hour') != 0 && time.get('minute') != 0) return;
+	if (time.get('hour') != 0 || time.get('minute') != 0) return;
 
 	const KV = env['Notice-Book'];
 	const keys = await KV.list();
@@ -59,7 +59,7 @@ export async function updateDailySchedule(event: ScheduledController, env: Env, 
 			const type = key.name.split('_')[1] as NoticeType;
 
 			nameSet.add(key.name);
-			noticeListMap[type].set(key.name, (await KV.get(key.name, 'json'))!);
+			noticeListMap[type].set(key.name, JSON.parse((await KV.get(key.name, 'json'))!));
 		}
 	}
 
