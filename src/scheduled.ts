@@ -46,10 +46,10 @@ export async function updateDailySchedule(event: ScheduledController, env: Env, 
 	const KV = env['Notice-Book'];
 	const keys = await KV.list();
 	const noticeListMap: Record<NoticeType, Map<string, Notice[]>> = {
-		all: new Map<string, Notice[]>(),
-		yesterday: new Map<string, Notice[]>(),
-		today: new Map<string, Notice[]>(),
-		tomorrow: new Map<string, Notice[]>(),
+		[NoticeType.All]: new Map(),
+		[NoticeType.Yesterday]: new Map(),
+		[NoticeType.Today]: new Map(),
+		[NoticeType.Tomorrow]: new Map(),
 	};
 	const kvs = Object.values(noticeListMap);
 	const nameSet = new Set();
@@ -113,41 +113,41 @@ export async function updateDailySchedule(event: ScheduledController, env: Env, 
 	}
 
 	await Promise.allSettled(needToSynchronize).catch(() => {});
+}
 
-	function getLastType(key: string) {
-		const [key1, noticeType, ...key2] = key.split('_');
-		let lastType: NoticeType = NoticeType.All;
+export function getLastType(key: string) {
+	const [key1, noticeType, ...key2] = key.split('_');
+	let lastType: NoticeType = NoticeType.All;
 
-		switch (noticeType) {
-			case NoticeType.Yesterday:
-				lastType = NoticeType.All;
-				break;
-			case NoticeType.Today:
-				lastType = NoticeType.Yesterday;
-				break;
-			case NoticeType.Tomorrow:
-				lastType = NoticeType.Today;
-				break;
-		}
-
-		return `${key1}_${lastType}_${key2.join('_')}`;
+	switch (noticeType) {
+		case NoticeType.Yesterday:
+			lastType = NoticeType.All;
+			break;
+		case NoticeType.Today:
+			lastType = NoticeType.Yesterday;
+			break;
+		case NoticeType.Tomorrow:
+			lastType = NoticeType.Today;
+			break;
 	}
 
-	function getNextType(key: string) {
-		const [key1, noticeType, ...key2] = key.split('_');
-		let nextType: NoticeType = NoticeType.All;
+	return `${key1}_${lastType}_${key2.join('_')}`;
+}
 
-		switch (noticeType) {
-			case NoticeType.Yesterday:
-				nextType = NoticeType.Today;
-				break;
-			case NoticeType.Today:
-				nextType = NoticeType.Tomorrow;
-				break;
-		}
+export function getNextType(key: string) {
+	const [key1, noticeType, ...key2] = key.split('_');
+	let nextType: NoticeType = NoticeType.All;
 
-		return `${key1}_${nextType}_${key2.join('_')}`;
+	switch (noticeType) {
+		case NoticeType.Yesterday:
+			nextType = NoticeType.Today;
+			break;
+		case NoticeType.Today:
+			nextType = NoticeType.Tomorrow;
+			break;
 	}
+
+	return `${key1}_${nextType}_${key2.join('_')}`;
 }
 
 export function checkIsInTimeRange(event: ScheduledController, env: Env, ctx: ExecutionContext) {
@@ -156,14 +156,10 @@ export function checkIsInTimeRange(event: ScheduledController, env: Env, ctx: Ex
 
 	const time = getTimeWithZone(event.scheduledTime);
 	const startOfDay = time.startOf('day').valueOf();
-	const [start, end] = [
-		dayjs(startOfDay + timeRange[0]),
-		dayjs(startOfDay + timeRange[1])
-	];
+	const [start, end] = [dayjs(startOfDay + timeRange[0]), dayjs(startOfDay + timeRange[1])];
 
 	return start.isBefore(time, 'minute') && end.isAfter(time, 'minute');
 }
-
 
 function getTimeWithZone(time: number) {
 	return dayjs(time).add(8, 'hour');
