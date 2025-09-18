@@ -10,7 +10,7 @@ invocation_logs = true
 
 [vars]
 SUBSCRIPTION_PATH = "[your_domain]/worker"
-TIME_RANGE = your_notice_time_range
+TIME_RANGE = [your_notice_time_range]
 
 [[routes]]
 pattern = "[your_domain]/worker/*"
