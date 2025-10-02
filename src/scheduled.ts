@@ -22,10 +22,13 @@ export async function pollSchedule(event: ScheduledController, env: Env, ctx: Ex
 			});
 		}
 	}
-	let needNotifications = [];
+
+	const needNotificationSubs = [];
+	const needNotifications = [];
 	for (const { endPoint, notices } of needToNotice) {
 		for (const notice of notices) {
 			if (notice.hour == time.get('hour') && notice.minute == time.get('minute')) {
+				needNotificationSubs.push(endPoint);
 				needNotifications.push(
 					pushNotification(JSON.parse((await KV.get(`subscription_${endPoint}`))!) as PushSubscription, notice, {
 						subject: env.SUBSCRIPTION_PATH,
@@ -36,6 +39,7 @@ export async function pollSchedule(event: ScheduledController, env: Env, ctx: Ex
 			}
 		}
 	}
+	console.log('need notification subscriptions:', needNotificationSubs)
 	await Promise.allSettled(needNotifications).catch(() => {});
 }
 
@@ -152,13 +156,16 @@ export function getNextType(key: string) {
 
 export function checkIsInTimeRange(event: ScheduledController, env: Env, ctx: ExecutionContext) {
 	const timeRange = env.TIME_RANGE;
+	console.log('available timeRange:', timeRange)
 	if (timeRange.length !== 2) return true;
 
 	const time = getTimeWithZone(event.scheduledTime);
 	const startOfDay = time.startOf('day').valueOf();
 	const [start, end] = [dayjs(startOfDay + timeRange[0]), dayjs(startOfDay + timeRange[1])];
 
-	return start.isBefore(time, 'minute') && end.isAfter(time, 'minute');
+	const isInTimeRange = start.isBefore(time, 'minute') && end.isAfter(time, 'minute');
+	console.log('isInTimeRange:', isInTimeRange)
+	return isInTimeRange;
 }
 
 function getTimeWithZone(time: number) {
