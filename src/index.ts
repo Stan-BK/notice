@@ -96,8 +96,9 @@ export default {
 	// The scheduled handler is invoked at the interval set in our wrangler.jsonc's
 	// [[triggers]] configuration.
 	async scheduled(event, env, ctx): Promise<void> {
-		if (!checkIsInTimeRange(event, env, ctx)) return
 		await updateDailySchedule(event, env, ctx);
+
+		if (!checkIsInTimeRange(event, env, ctx)) return
 		await pollSchedule(event, env, ctx);
 	},
 } satisfies ExportedHandler<Env>;
