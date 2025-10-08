@@ -58,7 +58,7 @@ describe('scheduler test cases', () => {
 
 		await updateDailySchedule(
 			{
-				scheduledTime: dayjs().utc().hour(16).minute(0).valueOf(),
+				scheduledTime: dayjs().hour(16).minute(0).valueOf(),
 			} as any,
 			env as any,
 			{} as any
