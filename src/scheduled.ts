@@ -39,7 +39,7 @@ export async function pollSchedule(event: ScheduledController, env: Env, ctx: Ex
 			}
 		}
 	}
-	console.log('need notification subscriptions:', needNotificationSubs)
+	console.log('need notification subscriptions:', needNotificationSubs);
 	await Promise.allSettled(needNotifications).catch(() => {});
 }
 
@@ -56,54 +56,46 @@ export async function updateDailySchedule(event: ScheduledController, env: Env, 
 		[NoticeType.Tomorrow]: new Map(),
 	};
 	const kvs = Object.values(noticeListMap);
-	const nameSet = new Set();
 
 	for (const key of keys.keys) {
 		if (key.name.startsWith(`notice_`)) {
 			const type = key.name.split('_')[1] as NoticeType;
-
-			nameSet.add(key.name);
 			noticeListMap[type].set(key.name, JSON.parse((await KV.get(key.name, 'json'))!));
 		}
 	}
 
-	const needToSynchronize: Promise<void>[] = [];
-
-	for (let i = 1; i < kvs.length; i++) {
-		const noticeList = kvs[i];
-		switch (i) {
-			case 1:
+	const noticeListEntries = [NoticeType.Yesterday, NoticeType.Today, NoticeType.Tomorrow].map((type) => [type, noticeListMap[type]]) as [
+		NoticeType,
+		Map<string, Notice[]>
+	][];
+	for (let i = 0; i < noticeListEntries.length; i++) {
+		const needToSynchronize: Promise<void>[] = [];
+		const [type, noticeList] = noticeListEntries[i];
+		switch (type) {
+			case NoticeType.Yesterday:
 				noticeList.forEach((notices, key) =>
 					needToSynchronize.push(
 						(async () => {
 							const lastType = getLastType(key);
-							const lastTypeNotices = await KV.get(lastType).then((value) => {
-								if (value) {
-									return JSON.parse(value) as Notice[];
-								}
-							});
+							const lastTypeNotices = noticeListMap[NoticeType.All].get(lastType)
 							await KV.put(lastType, JSON.stringify(lastTypeNotices ? lastTypeNotices?.concat(notices) : notices));
-							if (!nameSet.has(getNextType(key))) {
-								await KV.delete(key);
-							}
+							await KV.delete(key);
 						})()
 					)
 				);
 				break;
-			case 2:
+			case NoticeType.Today:
 				noticeList.forEach((notices, key) =>
 					needToSynchronize.push(
 						(async () => {
 							const lastType = getLastType(key);
 							await KV.put(lastType, JSON.stringify(notices));
-							if (!nameSet.has(getNextType(key))) {
-								await KV.delete(key);
-							}
+							await KV.delete(key);
 						})()
 					)
 				);
 				break;
-			case 3:
+			case NoticeType.Tomorrow:
 				noticeList.forEach((notices, key) =>
 					needToSynchronize.push(
 						(async () => {
@@ -114,9 +106,8 @@ export async function updateDailySchedule(event: ScheduledController, env: Env, 
 					)
 				);
 		}
+		await Promise.allSettled(needToSynchronize).catch(() => {});
 	}
-
-	await Promise.allSettled(needToSynchronize).catch(() => {});
 }
 
 export function getLastType(key: string) {
@@ -138,25 +129,9 @@ export function getLastType(key: string) {
 	return `${key1}_${lastType}_${key2.join('_')}`;
 }
 
-export function getNextType(key: string) {
-	const [key1, noticeType, ...key2] = key.split('_');
-	let nextType: NoticeType = NoticeType.All;
-
-	switch (noticeType) {
-		case NoticeType.Yesterday:
-			nextType = NoticeType.Today;
-			break;
-		case NoticeType.Today:
-			nextType = NoticeType.Tomorrow;
-			break;
-	}
-
-	return `${key1}_${nextType}_${key2.join('_')}`;
-}
-
 export function checkIsInTimeRange(event: ScheduledController, env: Env, ctx: ExecutionContext) {
 	const timeRange = env.TIME_RANGE;
-	console.log('available timeRange:', timeRange)
+	console.log('available timeRange:', timeRange);
 	if (timeRange.length !== 2) return true;
 
 	const time = getTimeWithZone(event.scheduledTime);
@@ -164,7 +139,7 @@ export function checkIsInTimeRange(event: ScheduledController, env: Env, ctx: Ex
 	const [start, end] = [dayjs(startOfDay + timeRange[0]), dayjs(startOfDay + timeRange[1])];
 
 	const isInTimeRange = start.isBefore(time, 'minute') && end.isAfter(time, 'minute');
-	console.log('isInTimeRange:', isInTimeRange)
+	console.log('isInTimeRange:', isInTimeRange);
 	return isInTimeRange;
 }
 

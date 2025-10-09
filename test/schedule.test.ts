@@ -1,7 +1,5 @@
-import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
-import { getLastType, getNextType, updateDailySchedule } from '../src/scheduled';
-import { NoticeType } from '../src/enums';
-import { Notice } from '../src/handleNotices';
+import { describe, expect, it, vi } from 'vitest';
+import { getLastType, updateDailySchedule } from '../src/scheduled';
 import dayjs from 'dayjs';
 
 describe('scheduler test cases', () => {
@@ -10,10 +8,6 @@ describe('scheduler test cases', () => {
 		expect(getLastType('notice_tomorrow_any')).toBe('notice_today_any');
 		expect(getLastType('notice_today_any')).toBe('notice_yesterday_any');
 		expect(getLastType('notice_yesterday_any')).toBe('notice_all_any');
-	});
-	it('getNextType', () => {
-		expect(getNextType('notice_today_any')).toBe('notice_tomorrow_any');
-		expect(getNextType('notice_yesterday_any')).toBe('notice_today_any');
 	});
 	it('should update daily schedule correctly', async () => {
 		const get = vi.fn();
