@@ -55,7 +55,6 @@ export async function updateDailySchedule(event: ScheduledController, env: Env, 
 		[NoticeType.Today]: new Map(),
 		[NoticeType.Tomorrow]: new Map(),
 	};
-	const kvs = Object.values(noticeListMap);
 
 	for (const key of keys.keys) {
 		if (key.name.startsWith(`notice_`)) {
@@ -77,7 +76,7 @@ export async function updateDailySchedule(event: ScheduledController, env: Env, 
 					needToSynchronize.push(
 						(async () => {
 							const lastType = getLastType(key);
-							const lastTypeNotices = noticeListMap[NoticeType.All].get(lastType)
+							const lastTypeNotices = noticeListMap[NoticeType.All].get(lastType);
 							await KV.put(lastType, JSON.stringify(lastTypeNotices ? lastTypeNotices?.concat(notices) : notices));
 							await KV.delete(key);
 						})()
@@ -131,7 +130,7 @@ export function getLastType(key: string) {
 
 export function checkIsInTimeRange(event: ScheduledController, env: Env, ctx: ExecutionContext) {
 	const timeRange = env.TIME_RANGE;
-	console.log('available timeRange:', timeRange);
+	console.log(`current cron's schedule time: ${event.scheduledTime}, format like: ${dayjs(event.scheduledTime).format('YYYY-MM-DD HH:mm:ss')}`);
 	if (timeRange.length !== 2) return true;
 
 	const time = getTimeWithZone(event.scheduledTime);
