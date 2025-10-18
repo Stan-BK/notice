@@ -47,6 +47,7 @@ export async function updateDailySchedule(event: ScheduledController, env: Env, 
 	const time = getTimeWithZone(event.scheduledTime);
 	if (time.get('hour') != 0 || time.get('minute') != 0) return;
 
+	console.log('update daily schedule at', time.format('YYYY-MM-DD HH:mm:ss'));
 	const KV = env['Notice-Book'];
 	const keys = await KV.list();
 	const noticeListMap: Record<NoticeType, Map<string, Notice[]>> = {
@@ -67,6 +68,8 @@ export async function updateDailySchedule(event: ScheduledController, env: Env, 
 		NoticeType,
 		Map<string, Notice[]>
 	][];
+
+	console.log('notice list entries:', noticeListEntries);
 	for (let i = 0; i < noticeListEntries.length; i++) {
 		const needToSynchronize: Promise<void>[] = [];
 		const [type, noticeList] = noticeListEntries[i];
