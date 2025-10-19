@@ -60,7 +60,7 @@ export async function updateDailySchedule(event: ScheduledController, env: Env, 
 	for (const key of keys.keys) {
 		if (key.name.startsWith(`notice_`)) {
 			const type = key.name.split('_')[1] as NoticeType;
-			noticeListMap[type].set(key.name, JSON.parse((await KV.get(key.name, 'json'))!));
+			noticeListMap[type].set(key.name, (await KV.get(key.name, 'json'))!);
 		}
 	}
 
