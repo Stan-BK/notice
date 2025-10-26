@@ -79,8 +79,8 @@ export async function updateDailySchedule(event: ScheduledController, env: Env, 
 					needToSynchronize.push(
 						(async () => {
 							const lastType = getLastType(key);
-							const lastTypeNotices = noticeListMap[NoticeType.All].get(lastType);
-							await KV.put(lastType, JSON.stringify(lastTypeNotices ? lastTypeNotices?.concat(notices) : notices));
+							const lastTypeNotices = noticeListMap[NoticeType.All].get(lastType) ?? [];
+							await KV.put(lastType, JSON.stringify(lastTypeNotices.concat(notices)));
 							await KV.delete(key);
 						})()
 					)
@@ -91,8 +91,19 @@ export async function updateDailySchedule(event: ScheduledController, env: Env, 
 					needToSynchronize.push(
 						(async () => {
 							const lastType = getLastType(key);
-							await KV.put(lastType, JSON.stringify(notices));
-							await KV.delete(key);
+							const noticesNeedRepeat: Notice[] = [];
+							const noticesNeedUpdate: Notice[] = [];
+
+							notices.forEach(notice => {
+								if (notice.isRepeat) {
+									noticesNeedRepeat.push(notice);
+								} else {
+									noticesNeedUpdate.push(notice);
+								}
+							});
+
+							await KV.put(lastType, JSON.stringify(noticesNeedUpdate));
+							await KV.put(key, JSON.stringify(noticesNeedRepeat));
 						})()
 					)
 				);
@@ -102,7 +113,8 @@ export async function updateDailySchedule(event: ScheduledController, env: Env, 
 					needToSynchronize.push(
 						(async () => {
 							const lastType = getLastType(key);
-							await KV.put(lastType, JSON.stringify(notices));
+							const lastTypeNotices = noticeListMap[NoticeType.All].get(lastType)?.filter(notice => notice.isRepeat) ?? [];
+							await KV.put(lastType, JSON.stringify(lastTypeNotices.concat(notices)));
 							await KV.delete(key);
 						})()
 					)

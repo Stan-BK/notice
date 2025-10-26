@@ -5,6 +5,7 @@ export interface Notice {
 	description: string;
 	hour: number;
 	minute: number;
+	isRepeat?: boolean;
 }
 
 async function getNoticeList(KV: KVNamespace, endPoint: string, type: NoticeType) {
