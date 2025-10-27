@@ -89,6 +89,10 @@ export default {
 					status: 403,
 				});
 			}
+		} else if (req.method == 'GET') {
+			if (url.pathname == `${PATH}/getTimeRange`) {
+				return new Response(JSON.stringify(env.TIME_RANGE));
+			}
 		}
 		return new Response('Unknown path');
 	},
