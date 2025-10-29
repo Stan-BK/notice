@@ -1,67 +1,65 @@
-import { PushSubscription } from 'web-push';
-import { NoticeType, VapidKeys } from './enums';
-import { getNoticeList, Notice, updateNoticeList } from './handleNotices';
-import { generateVAPIDKeys, pushNotification as sendNotification, subscribe, unsubscribe } from './subscription';
-import dayjs from 'dayjs';
-import { checkIsInTimeRange, pollSchedule, updateDailySchedule } from './scheduled';
+import { PushSubscription } from 'web-push'
+import { NoticeType, VapidKeys } from './enums'
+import { getNoticeList, Notice, updateNoticeList } from './handleNotices'
+import { generateVAPIDKeys, pushNotification as sendNotification, subscribe, unsubscribe } from './subscription'
+import dayjs from 'dayjs'
+import { checkIsInTimeRange, pollSchedule, updateDailySchedule } from './scheduled'
 
-const PATH = '/worker';
+const PATH = '/worker'
 
 export default {
 	async fetch(req, env) {
-		const url = new URL(req.url);
+		const url = new URL(req.url)
 
 		if (req.method == 'POST') {
 			try {
-				if (url.pathname == `${PATH}/generateVAPIDKeys`) return await generateVAPIDKeys(env['Notice-Book'], await req.text());
+				if (url.pathname == `${PATH}/generateVAPIDKeys`) return await generateVAPIDKeys(env['Notice-Book'], await req.text())
 
 				if (url.pathname == `${PATH}/subscribe`) {
 					const { temporaryId, subscription } = (await req.json()) as {
-						temporaryId: string;
-						subscription: PushSubscription;
-					};
+						temporaryId: string
+						subscription: PushSubscription
+					}
 
-					return await subscribe(env['Notice-Book'], temporaryId, subscription);
+					return await subscribe(env['Notice-Book'], temporaryId, subscription)
 				}
 
 				if (url.pathname == `${PATH}/unsubscribe`) {
 					const { endPoint } = (await req.json()) as {
-						endPoint: string;
-					};
+						endPoint: string
+					}
 
-					return await unsubscribe(env['Notice-Book'], endPoint);
+					return await unsubscribe(env['Notice-Book'], endPoint)
 				}
 
 				if (url.pathname == `${PATH}/update`) {
 					try {
-						const type = url.searchParams.get('type') as NoticeType;
+						const type = url.searchParams.get('type') as NoticeType
 						const { endPoint, noticeList } = (await req.json()) as {
-							endPoint: string;
-							noticeList: Notice[];
-						};
+							endPoint: string
+							noticeList: Notice[]
+						}
 
-						return await updateNoticeList(env['Notice-Book'], endPoint, type, noticeList);
+						return await updateNoticeList(env['Notice-Book'], endPoint, type, noticeList)
 					} catch (e) {
 						return new Response('Error', {
 							status: 403,
-						});
+						})
 					}
 				}
 
 				if (url.pathname == `${PATH}/noticeList`) {
 					const { endPoint } = (await req.json()) as {
-						endPoint: string;
-					};
-					return new Response(
-						JSON.stringify(await getNoticeList(env['Notice-Book'], endPoint, url.searchParams.get('type') as NoticeType))
-					);
+						endPoint: string
+					}
+					return new Response(JSON.stringify(await getNoticeList(env['Notice-Book'], endPoint, url.searchParams.get('type') as NoticeType)))
 				}
 
 				if (url.pathname == `${PATH}/test`) {
 					const { endPoint } = (await req.json()) as {
-						endPoint: string;
-					};
-					const KV = env['Notice-Book'];
+						endPoint: string
+					}
+					const KV = env['Notice-Book']
 
 					try {
 						await sendNotification(
@@ -76,33 +74,33 @@ export default {
 								subject: env.SUBSCRIPTION_PATH,
 								publicKey: (await KV.get(`${VapidKeys.PublicKey}_${endPoint}`))!,
 								privateKey: (await KV.get(`${VapidKeys.PrivateKey}_${endPoint}`))!,
-							}
-						);
+							},
+						)
 					} catch (e) {
-						console.error(e);
-						return new Response('test failed');
+						console.error(e)
+						return new Response('test failed')
 					}
-					return new Response('test success');
+					return new Response('test success')
 				}
 			} catch (e) {
 				return new Response('Error', {
 					status: 403,
-				});
+				})
 			}
 		} else if (req.method == 'GET') {
 			if (url.pathname == `${PATH}/getTimeRange`) {
-				return new Response(JSON.stringify(env.TIME_RANGE));
+				return new Response(JSON.stringify(env.TIME_RANGE))
 			}
 		}
-		return new Response('Unknown path');
+		return new Response('Unknown path')
 	},
 
 	// The scheduled handler is invoked at the interval set in our wrangler.jsonc's
 	// [[triggers]] configuration.
 	async scheduled(event, env, ctx): Promise<void> {
-		await updateDailySchedule(event, env, ctx);
+		await updateDailySchedule(event, env, ctx)
 
 		if (!checkIsInTimeRange(event, env, ctx)) return
-		await pollSchedule(event, env, ctx);
+		await pollSchedule(event, env, ctx)
 	},
-} satisfies ExportedHandler<Env>;
+} satisfies ExportedHandler<Env>
