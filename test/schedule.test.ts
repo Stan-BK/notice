@@ -23,11 +23,16 @@ describe('scheduler test cases', () => {
 		const KV = {
 			notice_all_any: JSON.stringify([notice]),
 			notice_tomorrow_any: JSON.stringify([notice]),
-			notice_today_any: JSON.stringify([notice]),
+			notice_today_any: JSON.stringify([notice, Object.assign({}, notice, {
+				isRepeat: true,
+			})]),
 			notice_yesterday_any: JSON.stringify([notice]),
 		}
 
-		get.mockImplementation((key: keyof typeof KV) => {
+		get.mockImplementation((key: keyof typeof KV, type?: 'json') => {
+			if (type === 'json') {
+				return Promise.resolve(KV[key] ? JSON.parse(KV[key]) : null);
+			}
 			return Promise.resolve(KV[key]);
 		});
 		put.mockImplementation((key: keyof typeof KV, value: string) => {
@@ -58,10 +63,12 @@ describe('scheduler test cases', () => {
 			{} as any
 		);
 
-		expect(put).toHaveBeenCalledTimes(3);
-		expect(del).toHaveBeenCalledTimes(1);
+		expect(put).toHaveBeenCalledTimes(4);
+		expect(del).toHaveBeenCalledTimes(2);
 		expect(KV['notice_tomorrow_any']).toBe(undefined);
-		expect(KV['notice_today_any']).toBe(JSON.stringify([notice]));
+		expect(KV['notice_today_any']).toBe(JSON.stringify([Object.assign({}, notice, {
+			isRepeat: true,
+		}), notice]));
 		expect(KV['notice_yesterday_any']).toBe(JSON.stringify([notice]));
 		expect(KV['notice_all_any']).toBe(JSON.stringify([notice, notice]));
 	});
